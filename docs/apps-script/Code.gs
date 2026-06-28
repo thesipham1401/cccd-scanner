@@ -1,15 +1,14 @@
 /**
  * CCCD Scanner — Apps Script Web App.
+ * Phục vụ CẢ HAI:
+ *   - App Android: gửi POST (JSON).
+ *   - Web app (Safari iPhone): gửi GET dạng JSONP (tránh lỗi CORS của trình duyệt).
  *
- * Gắn vào chính Google Sheet sẽ lưu dữ liệu:
- *   Tiện ích mở rộng (Extensions) → Apps Script → dán file này → Lưu.
- *   Triển khai (Deploy) → Ứng dụng web (Web app):
- *     - Execute as: Me (chính bạn)
- *     - Who has access: Anyone (Bất kỳ ai)
- *   → Copy "Web app URL" và dán vào app (kScriptUrl).
+ * Cách deploy: mở Google Sheet → Tiện ích mở rộng → Apps Script → dán file này →
+ *   Triển khai → Ứng dụng web → Execute as: Me, Who has access: Anyone → copy URL.
  *
- * QUAN TRỌNG: đổi SECRET bên dưới thành một chuỗi ngẫu nhiên dài, rồi dán y
- * hệt chuỗi đó vào app (kSharedSecret). Đây là "mật khẩu" chống người lạ ghi bậy.
+ * QUAN TRỌNG: đổi SECRET thành chuỗi ngẫu nhiên dài, dán y hệt vào app Android
+ * (kSharedSecret) và vào web (hằng SECRET trong index.html).
  */
 
 const SECRET = 'DOI_CHUOI_NAY_THANH_MAT_KHAU_NGAU_NHIEN_DAI';
@@ -19,38 +18,49 @@ const HEADER = [
   'Địa chỉ thường trú', 'Ngày cấp', 'Quê quán', 'Ngày quét',
 ];
 
+// App Android — POST JSON { secret, force, row:[...9] }
 function doPost(e) {
+  const body = JSON.parse(e.postData.contents);
+  return _json(_handle(body));
+}
+
+// Web app — GET ?secret=&force=&c0..c8=&callback=  → trả về JSONP
+function doGet(e) {
+  const p = e.parameter;
+  const row = [p.c0, p.c1, p.c2, p.c3, p.c4, p.c5, p.c6, p.c7, p.c8];
+  const result = _handle({
+    secret: p.secret,
+    force: (p.force === 'true' || p.force === '1'),
+    row: row,
+  });
+  const cb = p.callback || 'callback';
+  return ContentService
+    .createTextOutput(cb + '(' + JSON.stringify(result) + ')')
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function _handle(body) {
   try {
-    const body = JSON.parse(e.postData.contents);
     if (body.secret !== SECRET) {
-      return _json({ result: 'error', message: 'unauthorized' });
+      return { result: 'error', message: 'unauthorized' };
     }
-
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-
-    // Tạo dòng tiêu đề nếu sheet đang trống.
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(HEADER);
     }
-
     const row = body.row;
     const cccd = String(row[0]);
-
-    // Kiểm tra trùng theo cột A (Số CCCD), trừ khi force = true.
     if (!body.force && sheet.getLastRow() >= 2) {
-      const colA = sheet
-        .getRange(2, 1, sheet.getLastRow() - 1, 1)
-        .getValues();
+      const colA = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
       const exists = colA.some(function (r) { return String(r[0]) === cccd; });
       if (exists) {
-        return _json({ result: 'duplicate' });
+        return { result: 'duplicate' };
       }
     }
-
     sheet.appendRow(row);
-    return _json({ result: 'appended' });
+    return { result: 'appended' };
   } catch (err) {
-    return _json({ result: 'error', message: String(err) });
+    return { result: 'error', message: String(err) };
   }
 }
 

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Quét CCCD</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root { --teal:#00897b; --teal-d:#00695c; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f5; color: #222; padding: 16px; max-width: 560px; margin: 0 auto;
+  }
+  h1 { font-size: 22px; text-align: center; margin: 8px 0 16px; }
+  button {
+    width: 100%; padding: 16px; font-size: 18px; border: none; border-radius: 12px;
+    background: var(--teal); color: #fff; font-weight: 600; margin-top: 8px;
+  }
+  button:disabled { background: #b0bec5; }
+  button.secondary { background: #455a64; }
+  #reader { width: 100%; border-radius: 12px; overflow: hidden; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 12px; font-size: 17px; border: 1px solid #ccc; border-radius: 8px;
+  }
+  .consent { display: flex; align-items: center; gap: 10px; margin: 14px 0; font-size: 16px; }
+  .consent input { width: 22px; height: 22px; }
+  .hidden { display: none; }
+  .banner { background: #fff3cd; color: #8a6d00; padding: 10px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: #323232; color: #fff; padding: 12px 20px; border-radius: 24px;
+    font-size: 16px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 9;
+  }
+  #toast.show { opacity: 1; }
+  .err { color: #c62828; text-align: center; margin: 8px 0; min-height: 20px; }
+</style>
+</head>
+<body>
+<h1>Quét CCCD</h1>
+
+<!-- ====== CẤU HÌNH: điền 2 dòng dưới đây ====== -->
+<script>
+  // Dán "Web app URL" từ Apps Script (kết thúc bằng /exec):
+  const SCRIPT_URL = 'REPLACE_WITH_APPS_SCRIPT_URL';
+  // Dán ĐÚNG chuỗi SECRET đã đặt trong Code.gs:
+  const SECRET = 'DOI_CHUOI_NAY_THANH_MAT_KHAU_NGAU_NHIEN_DAI';
+</script>
+<!-- ============================================ -->
+
+<!-- Màn quét -->
+<div id="scanView">
+  <div id="reader"></div>
+  <div class="err" id="scanErr"></div>
+  <button id="startBtn">Bắt đầu quét</button>
+</div>
+
+<!-- Màn xem lại -->
+<div id="formView" class="hidden">
+  <div class="banner">Kiểm tra lại thông tin và <b>gõ Quê quán</b> (QR không có sẵn).</div>
+  <div class="field"><label>Số CCCD</label><input id="f_cccd" inputmode="numeric" /></div>
+  <div class="field"><label>Số CMND cũ</label><input id="f_oldId" /></div>
+  <div class="field"><label>Họ và tên</label><input id="f_name" /></div>
+  <div class="field"><label>Ngày sinh</label><input id="f_dob" /></div>
+  <div class="field"><label>Giới tính</label><input id="f_gender" /></div>
+  <div class="field"><label>Địa chỉ thường trú</label><input id="f_address" /></div>
+  <div class="field"><label>Ngày cấp</label><input id="f_issue" /></div>
+  <div class="field"><label>Quê quán</label><input id="f_hometown" placeholder="Gõ quê quán…" /></div>
+
+  <label class="consent">
+    <input type="checkbox" id="consent" />
+    Khách hàng đồng ý cho thu thập thông tin
+  </label>
+
+  <button id="saveBtn" disabled>Lưu</button>
+  <button class="secondary" id="againBtn">Quét thẻ khác</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let scanner = null;
+
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function qrDate(s) {
+    if (!s) return '';
+    if (!/^\d{8}$/.test(s)) return s; // để nguyên nếu lạ, người dùng tự sửa
+    return s.slice(0, 2) + '/' + s.slice(2, 4) + '/' + s.slice(4, 8);
+  }
+
+  function parseQr(raw) {
+    const p = raw.split('|');
+    if (p.length !== 7) throw new Error('Không phải mã QR mặt trước CCCD.');
+    const cccd = p[0].trim();
+    if (!/^\d{12}$/.test(cccd)) throw new Error('Số CCCD không hợp lệ (cần 12 số).');
+    return {
+      cccd, oldId: p[1].trim(), name: p[2].trim(), dob: qrDate(p[3].trim()),
+      gender: p[4].trim(), address: p[5].trim(), issue: qrDate(p[6].trim()),
+    };
+  }
+
+  function today() {
+    const n = new Date(); const pad = (x) => String(x).padStart(2, '0');
+    return pad(n.getDate()) + '/' + pad(n.getMonth() + 1) + '/' + n.getFullYear();
+  }
+
+  // JSONP: tránh hoàn toàn lỗi CORS của trình duyệt với Apps Script.
+  function jsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+      const s = document.createElement('script');
+      const timer = setTimeout(() => { cleanup(); reject(new Error('Hết thời gian chờ mạng')); }, 20000);
+      function cleanup() { clearTimeout(timer); delete window[cb]; s.remove(); }
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      s.onerror = () => { cleanup(); reject(new Error('Lỗi mạng')); };
+      const qs = new URLSearchParams(Object.assign({}, params, { callback: cb })).toString();
+      s.src = url + (url.includes('?') ? '&' : '?') + qs;
+      document.body.appendChild(s);
+    });
+  }
+
+  function showForm(d) {
+    $('f_cccd').value = d.cccd; $('f_oldId').value = d.oldId; $('f_name').value = d.name;
+    $('f_dob').value = d.dob; $('f_gender').value = d.gender; $('f_address').value = d.address;
+    $('f_issue').value = d.issue; $('f_hometown').value = '';
+    $('consent').checked = false; $('saveBtn').disabled = true;
+    $('scanView').classList.add('hidden'); $('formView').classList.remove('hidden');
+  }
+
+  function collect() {
+    const v = (id) => $(id).value.trim();
+    return {
+      c0: v('f_cccd'), c1: v('f_oldId'), c2: v('f_name'), c3: v('f_dob'),
+      c4: v('f_gender'), c5: v('f_address'), c6: v('f_issue'), c7: v('f_hometown'), c8: today(),
+    };
+  }
+
+  async function onScan(text) {
+    let d;
+    try { d = parseQr(text); }
+    catch (e) { $('scanErr').textContent = e.message; return; } // tiếp tục quét
+    try { await scanner.stop(); } catch (_) {}
+    showForm(d);
+  }
+
+  $('startBtn').onclick = async () => {
+    $('scanErr').textContent = '';
+    if (SCRIPT_URL.startsWith('REPLACE')) { $('scanErr').textContent = 'Chưa cấu hình SCRIPT_URL.'; return; }
+    scanner = new Html5Qrcode('reader');
+    try {
+      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 }, onScan, () => {});
+      $('startBtn').textContent = 'Đang quét… đưa QR vào khung';
+    } catch (e) {
+      $('scanErr').textContent = 'Không mở được camera. Cần dùng HTTPS và cho phép camera.';
+    }
+  };
+
+  ['change', 'click'].forEach((ev) =>
+    $('consent').addEventListener(ev, () => { $('saveBtn').disabled = !$('consent').checked; }));
+
+  async function doSave(force) {
+    $('saveBtn').disabled = true; $('saveBtn').textContent = 'Đang lưu…';
+    try {
+      const params = Object.assign({ secret: SECRET, force: force ? '1' : '0' }, collect());
+      const res = await jsonp(SCRIPT_URL, params);
+      if (res.result === 'appended') { toast('Đã lưu ✅'); resetToScan(); }
+      else if (res.result === 'duplicate') {
+        if (confirm('Số CCCD này đã có trong bảng. Vẫn lưu thêm?')) return doSave(true);
+      } else { toast('Lỗi: ' + (res.message || res.result)); }
+    } catch (e) { toast('Không gửi được: ' + e.message); }
+    finally { $('saveBtn').textContent = 'Lưu'; $('saveBtn').disabled = !$('consent').checked; }
+  }
+
+  $('saveBtn').onclick = () => doSave(false);
+
+  function resetToScan() {
+    $('formView').classList.add('hidden'); $('scanView').classList.remove('hidden');
+    $('startBtn').textContent = 'Bắt đầu quét';
+  }
+  $('againBtn').onclick = resetToScan;
+</script>
+</body>
+</html>
