@@ -66,18 +66,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final scanDate = _today();
     setState(() => _busy = true);
     try {
-      bool exists = false;
-      try {
-        exists = await widget.sheets.cccdExists(data.cccdNumber);
-      } catch (_) {/* offline: skip dedup, will queue below */}
-      if (exists && mounted) {
+      final result = await widget.sheets.append(data, scanDate);
+      if (result == AppendResult.duplicate) {
+        if (!mounted) return;
         final go = await _confirmDuplicate();
         if (go != true) {
           setState(() => _busy = false);
           return;
         }
+        await widget.sheets.append(data, scanDate, force: true);
       }
-      await widget.sheets.appendRow(data, scanDate);
       _toast('Đã lưu ✅');
       widget.onSaved();
     } catch (_) {

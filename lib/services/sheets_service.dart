@@ -1,58 +1,49 @@
-import 'package:googleapis/sheets/v4.dart';
-import 'auth_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/cccd_data.dart';
 
-const List<String> kHeader = [
-  'Số CCCD', 'Số CMND cũ', 'Họ và tên', 'Ngày sinh', 'Giới tính',
-  'Địa chỉ thường trú', 'Ngày cấp', 'Quê quán', 'Ngày quét',
-];
+/// Outcome of trying to append a row to the sheet via the Apps Script Web App.
+enum AppendResult { appended, duplicate }
 
+/// Sends rows to a Google Apps Script Web App bound to the shared Sheet.
+/// No Google Sign-In / Google Cloud needed: the script (running as the sheet
+/// owner) does the writing; a shared [secret] guards the endpoint.
 class SheetsService {
-  final AuthService auth;
-  final String spreadsheetId;
-  final String sheetName;
+  final String scriptUrl;
+  final String secret;
+  final http.Client _client;
 
-  SheetsService(this.auth, this.spreadsheetId, {this.sheetName = 'Trang tính1'});
+  SheetsService(this.scriptUrl, this.secret, {http.Client? client})
+      : _client = client ?? http.Client();
 
-  Future<SheetsApi> _api() async {
-    final client = await auth.authedClient();
-    if (client == null) {
-      throw StateError('Chưa đăng nhập Google');
+  /// Appends one row. With [force] false the script rejects a duplicate Số CCCD
+  /// (returns [AppendResult.duplicate]); call again with [force] true to add it
+  /// anyway. Throws on network/HTTP/script errors so callers can queue offline.
+  Future<AppendResult> append(
+    CccdData data,
+    String scanDate, {
+    bool force = false,
+  }) async {
+    final resp = await _client.post(
+      Uri.parse(scriptUrl),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'secret': secret,
+        'force': force,
+        'row': data.toSheetRow(scanDate),
+      }),
+    );
+    if (resp.statusCode != 200) {
+      throw http.ClientException('HTTP ${resp.statusCode}', Uri.parse(scriptUrl));
     }
-    return SheetsApi(client);
-  }
-
-  Future<void> ensureHeader() async {
-    final api = await _api();
-    final res = await api.spreadsheets.values
-        .get(spreadsheetId, '$sheetName!A1:I1');
-    final hasHeader = (res.values?.isNotEmpty ?? false) &&
-        (res.values!.first.isNotEmpty);
-    if (hasHeader) return;
-    await api.spreadsheets.values.update(
-      ValueRange(values: [kHeader]),
-      spreadsheetId,
-      '$sheetName!A1',
-      valueInputOption: 'RAW',
-    );
-  }
-
-  Future<bool> cccdExists(String cccdNumber) async {
-    final api = await _api();
-    final res = await api.spreadsheets.values
-        .get(spreadsheetId, '$sheetName!A2:A');
-    final col = res.values ?? [];
-    return col.any((row) => row.isNotEmpty && '${row.first}' == cccdNumber);
-  }
-
-  Future<void> appendRow(CccdData data, String scanDate) async {
-    final api = await _api();
-    await api.spreadsheets.values.append(
-      ValueRange(values: [data.toSheetRow(scanDate)]),
-      spreadsheetId,
-      '$sheetName!A1',
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
-    );
+    final body = jsonDecode(resp.body) as Map<String, dynamic>;
+    switch (body['result']) {
+      case 'appended':
+        return AppendResult.appended;
+      case 'duplicate':
+        return AppendResult.duplicate;
+      default:
+        throw StateError('Script error: ${body['message'] ?? body['result']}');
+    }
   }
 }

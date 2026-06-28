@@ -24,7 +24,9 @@ class SyncService {
     var count = 0;
     for (final r in pending) {
       try {
-        await sheets.appendRow(r.data, r.scanDate);
+        // Queued rows were already confirmed by the user at save time, so
+        // force past the duplicate guard.
+        await sheets.append(r.data, r.scanDate, force: true);
         await queue.remove(r.id);
         count++;
       } catch (_) {

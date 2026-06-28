@@ -28,3 +28,11 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
   Minor 2 (OPEN, low priority): full_ocr_parser permanentAddress reads single OCR line only;
   user edits it manually on the (always-shown) review screen for fallback scans. Improve later.
   Status after fixes: analyze clean, 22/22 tests pass.
+
+- REWORK (user request: simpler, no Google Cloud): switched sheet writing from
+  Google Sign-In + Sheets API to a Google Apps Script Web App (HTTP POST + shared secret).
+  Removed: auth_service, login_screen, deps google_sign_in/extension/googleapis/googleapis_auth.
+  Added: http dep, docs/apps-script/Code.gs, apps-script-setup.md, SheetsService.append(force),
+  injectable http.Client -> 5 new unit tests. Server-side dedup in the script.
+  main.dart: no login gate, config = kScriptUrl + kSharedSecret.
+  Status: analyze clean, 27/27 tests pass.
