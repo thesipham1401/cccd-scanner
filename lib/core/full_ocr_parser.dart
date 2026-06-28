@@ -1,23 +1,13 @@
 import '../models/cccd_data.dart';
 import 'hometown_extractor.dart';
-
-String _strip(String s) {
-  const from = 'àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ';
-  const to = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd';
-  final b = StringBuffer();
-  for (final ch in s.toLowerCase().split('')) {
-    final i = from.indexOf(ch);
-    b.write(i == -1 ? ch : to[i]);
-  }
-  return b.toString();
-}
+import 'text_utils.dart';
 
 String _valueAfterColon(String line) =>
     line.contains(':') ? line.substring(line.indexOf(':') + 1).trim() : '';
 
 String _findByLabel(List<String> lines, List<String> needles) {
   for (final line in lines) {
-    final n = _strip(line);
+    final n = stripVietnameseDiacritics(line);
     if (needles.any(n.contains)) {
       final v = _valueAfterColon(line);
       if (v.isNotEmpty) return v;

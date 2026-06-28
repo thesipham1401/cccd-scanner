@@ -21,3 +21,10 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
   Adapted: mobile_scanner 7.x onDetect kept; avoided firstOrNull.
   docs/superpowers/notes/google-setup.md added.
   PENDING (needs user): Android SDK (Android Studio), Google Cloud OAuth, kSpreadsheetId/kServerClientId, device test.
+
+- Final review: 0 Critical, 1 Important (fixed), 2 Minor.
+  Fixed Important: ensureHeader() exception no longer strands login (main.dart _safeEnsureHeader).
+  Fixed Minor 1: diacritics-strip extracted to core/text_utils.dart (shared).
+  Minor 2 (OPEN, low priority): full_ocr_parser permanentAddress reads single OCR line only;
+  user edits it manually on the (always-shown) review screen for fallback scans. Improve later.
+  Status after fixes: analyze clean, 22/22 tests pass.

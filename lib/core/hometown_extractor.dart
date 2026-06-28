@@ -1,21 +1,12 @@
-String _stripDiacritics(String s) {
-  const from = 'àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ';
-  const to = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd';
-  final b = StringBuffer();
-  for (final ch in s.toLowerCase().split('')) {
-    final i = from.indexOf(ch);
-    b.write(i == -1 ? ch : to[i]);
-  }
-  return b.toString();
-}
+import 'text_utils.dart';
 
 bool _isOriginLabel(String line) {
-  final n = _stripDiacritics(line);
+  final n = stripVietnameseDiacritics(line);
   return n.contains('que quan') || n.contains('place of origin');
 }
 
 bool _isOtherLabel(String line) {
-  final n = _stripDiacritics(line);
+  final n = stripVietnameseDiacritics(line);
   return n.contains('noi thuong tru') ||
       n.contains('place of residence') ||
       n.contains('co gia tri') ||

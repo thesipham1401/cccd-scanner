@@ -45,10 +45,19 @@ class _CccdScannerAppState extends State<CccdScannerApp> {
         _signedIn = acc != null;
         _checked = true;
       });
-      if (_signedIn) sheets.ensureHeader();
+      if (_signedIn) _safeEnsureHeader();
     }).catchError((_) {
       if (mounted) setState(() => _checked = true);
     });
+  }
+
+  /// Header creation must never block the app: a network hiccup right after
+  /// auth should not strand the user on the login screen. The header is
+  /// re-checked on the next launch and appendRow works without it.
+  Future<void> _safeEnsureHeader() async {
+    try {
+      await sheets.ensureHeader();
+    } catch (_) {/* proceed; header can be created later */}
   }
 
   @override
@@ -72,7 +81,7 @@ class _CccdScannerAppState extends State<CccdScannerApp> {
   Widget _login() => LoginScreen(
         auth: auth,
         onSignedIn: () async {
-          await sheets.ensureHeader();
+          await _safeEnsureHeader();
           setState(() => _signedIn = true);
         },
       );
