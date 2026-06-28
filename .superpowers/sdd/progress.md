@@ -8,3 +8,9 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
 - Tasks 1-8 (logic core): complete. 22/22 tests pass, analyze clean.
   Files: models/cccd_data, models/pending_record, core/date_utils, core/cccd_validator,
   core/qr_parser, core/hometown_extractor, core/full_ocr_parser, services/offline_queue.
+
+- Tasks 9-13 (services): complete (analyze clean, no device tests possible yet).
+  NOTE: real package versions newer than plan -> google_sign_in 7.2.0 (NEW API:
+  initialize/authenticate/authorizeScopes), connectivity_plus 7.2.0, mobile_scanner 7.2.0,
+  extension 3.0.0. auth_service rewritten for 7.x. Added googleapis_auth direct dep.
+  Files: auth_service, sheets_service, ocr_service, capture_service, sync_service.
