@@ -19,7 +19,7 @@ android {
         applicationId = "com.cccdscanner.cccd_scanner"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23 // google_sign_in 7.x (Credential Manager) + ML Kit require >= 23
+        minSdk = flutter.minSdkVersion // google_sign_in 7.x (Credential Manager) + ML Kit require >= 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -30,6 +30,10 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // Internal tool: skip R8 shrinking. Avoids R8 failures with ML Kit
+            // and keeps the build simple (APK is a bit larger, which is fine).
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

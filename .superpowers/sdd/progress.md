@@ -36,3 +36,11 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
   injectable http.Client -> 5 new unit tests. Server-side dedup in the script.
   main.dart: no login gate, config = kScriptUrl + kSharedSecret.
   Status: analyze clean, 27/27 tests pass.
+
+- BUILD: release APK builds successfully (build\app\outputs\flutter-apk\app-release.apk, ~97MB).
+  Toolchain fixes: installed Android cmdline-tools + accepted licenses.
+  android/gradle.properties: kotlin.incremental=false (fix "could not close incremental caches" on Windows).
+  android/app/build.gradle.kts release: isMinifyEnabled/isShrinkResources=false (avoid R8 failure with ML Kit).
+  Build env: prepend flutter bin to PATH; set JAVA_HOME=C:\Program Files\Android\Android Studio\jbr.
+  APK signed with debug key (fine for internal sideload). 96.9MB large due to ML Kit + no shrink;
+  can shrink later via --split-per-abi.
