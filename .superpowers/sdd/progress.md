@@ -14,3 +14,10 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
   initialize/authenticate/authorizeScopes), connectivity_plus 7.2.0, mobile_scanner 7.2.0,
   extension 3.0.0. auth_service rewritten for 7.x. Added googleapis_auth direct dep.
   Files: auth_service, sheets_service, ocr_service, capture_service, sync_service.
+
+- Tasks 14-17 (UI + wiring): complete. analyze clean, 22/22 tests pass.
+  Files: screens/login, screens/capture, screens/review, widgets/card_frame_overlay, main.dart.
+  Platform config: Android minSdk=23 + CAMERA/INTERNET perms; iOS camera+photo plist keys.
+  Adapted: mobile_scanner 7.x onDetect kept; avoided firstOrNull.
+  docs/superpowers/notes/google-setup.md added.
+  PENDING (needs user): Android SDK (Android Studio), Google Cloud OAuth, kSpreadsheetId/kServerClientId, device test.
