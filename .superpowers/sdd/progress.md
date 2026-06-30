@@ -45,7 +45,7 @@ Flutter: 3.44.4 / Dart 3.12.2 (bin: C:\Users\ADMIN\Downloads\flutter_windows_3.4
   APK signed with debug key (fine for internal sideload). 96.9MB large due to ML Kit + no shrink;
   can shrink later via --split-per-abi.
 
-- WEB APP (user request: free iPhone option, no Mac/fee): added webapp/index.html — a
+- WEB APP (user request: free iPhone option, no Mac/fee): added cccdscanner/index.html — a
   lightweight HTML/JS page. QR scan via html5-qrcode (works on iOS Safari over HTTPS),
   parse same 7 QR fields, manual Quê quán entry (no ML Kit on web), POST to same sheet
   via Apps Script JSONP (doGet) to avoid CORS. Code.gs upgraded: doGet+_handle shared

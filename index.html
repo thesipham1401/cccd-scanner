@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#071418" />
+<title>CCCD Scanner Hub</title>
+<style>
+  :root {
+    --bg: #071418;
+    --bg-soft: #0c1f24;
+    --card: rgba(10, 27, 31, 0.86);
+    --line: rgba(255, 255, 255, 0.1);
+    --text: #e8f4f1;
+    --muted: #98b6b0;
+    --teal: #14b8a6;
+    --teal-d: #0f766e;
+    --gold: #f4c95d;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(20, 184, 166, 0.22), transparent 30%),
+      radial-gradient(circle at top right, rgba(244, 201, 93, 0.16), transparent 26%),
+      linear-gradient(180deg, #041013 0%, #06151a 44%, #081a1f 100%);
+    padding: 18px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 30px 30px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.7), transparent 92%);
+  }
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    gap: 18px;
+  }
+  .hero, .panel, .tool {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  }
+  .hero {
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -60px;
+    bottom: -70px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.28), transparent 68%);
+    filter: blur(10px);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.2);
+    color: #bff3ec;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  h1 {
+    margin: 14px 0 10px;
+    font-size: clamp(34px, 7vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+  .lede {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .hero-card {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .hero-card strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .hero-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .tool {
+    padding: 18px;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .tool .top {
+    display: grid;
+    gap: 12px;
+  }
+  .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.18);
+    color: #bff3ec;
+    font-size: 20px;
+  }
+  .tool h2 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+  }
+  .tool p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #d9ebe7;
+    font-size: 12px;
+  }
+  .actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  a.button {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-weight: 700;
+    transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+  }
+  a.button:hover { transform: translateY(-1px); }
+  .primary {
+    background: linear-gradient(180deg, #1cc7b3, #109384);
+    color: white;
+    box-shadow: 0 14px 30px rgba(20, 184, 166, 0.24);
+  }
+  .secondary {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+  .panel {
+    padding: 18px;
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .panel-head h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .panel-head span { color: var(--muted); font-size: 13px; }
+  .launch-list {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .launch-item {
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .launch-item strong { display: block; margin-bottom: 6px; }
+  .launch-item span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  @media (max-width: 860px) {
+    .hero-grid, .tool-grid, .launch-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow">Tool hub · http://localhost:3000</span>
+      <h1>Chọn công cụ bạn muốn dùng</h1>
+      <p class="lede">Trang này là điểm vào chính. Từ đây bạn mở bộ quét CCCD, xem hướng dẫn launch, hoặc kiểm tra cấu hình backend mà không cần nhớ đường dẫn con.</p>
+
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>Luồng nhanh</strong>
+          <p>Mở một công cụ từ danh sách bên dưới, hoặc vào thẳng scanner nếu bạn chỉ cần quét QR CCCD.</p>
+        </div>
+        <div class="hero-card">
+          <strong>Hỗ trợ test</strong>
+          <p>Dùng local test qua localhost, preview trên Vercel, hoặc production với cùng một app.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-grid" aria-label="Tool selection">
+      <article class="tool">
+        <div class="top">
+          <div class="icon">⌁</div>
+          <div>
+            <h2>CCCD Scanner</h2>
+            <p>Mở công cụ quét QR CCCD, điền Quê quán và lưu dữ liệu vào Google Sheet.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Scan QR</span>
+            <span class="tag">Manual input</span>
+            <span class="tag">Google Sheet</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="/cccdscanner/">Open scanner</a>
+          <a class="button secondary" href="/cccdscanner/?script_url=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbzrCtO5MF3Y9N_PtYttaKQo88byK_IBtVF_IXyNiTYrupmt9CRMesPKLzY2JyTFy4pV%2Fexec&secret=jCHW5dr2zWuR8yGIcFeZBRkk">Test with default backend</a>
+        </div>
+        <div class="meta">Best for: quét trực tiếp trên điện thoại hoặc test local qua localhost.</div>
+      </article>
+
+      <article class="tool">
+        <div class="top">
+          <div class="icon">✦</div>
+          <div>
+            <h2>Launch Guide</h2>
+            <p>Mở tài liệu triển khai để biết cách chạy local, preview trên Vercel và production.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Local test</span>
+            <span class="tag">Vercel</span>
+            <span class="tag">Production</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="/README.md">Open README</a>
+          <a class="button secondary" href="/docs/superpowers/notes/webapp-setup.md">Open launch note</a>
+        </div>
+        <div class="meta">Best for: người mới vào dự án hoặc cần kiểm tra lại đường launch.</div>
+      </article>
+
+      <article class="tool">
+        <div class="top">
+          <div class="icon">⚙</div>
+          <div>
+            <h2>Backend Config</h2>
+            <p>Xem Apps Script, sửa secret, và mở scanner với tham số cấu hình trên URL nếu cần test backend khác.</p>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Apps Script</span>
+            <span class="tag">query string</span>
+            <span class="tag">override</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="/docs/apps-script/Code.gs">Open Code.gs</a>
+          <a class="button secondary" href="/cccdscanner/?script_url=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbzrCtO5MF3Y9N_PtYttaKQo88byK_IBtVF_IXyNiTYrupmt9CRMesPKLzY2JyTFy4pV%2Fexec&secret=jCHW5dr2zWuR8yGIcFeZBRkk">Open scanner with config</a>
+        </div>
+        <div class="meta">Best for: xác nhận endpoint, secret, hoặc đổi backend khi test.</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>How to launch</h3>
+          <span>One repo, three paths, same app.</span>
+        </div>
+        <span>localhost:3000 / Vercel / production</span>
+      </div>
+      <div class="launch-list">
+        <div class="launch-item"><strong>Local</strong><span>Serve the repo root, then open `/` for this hub or `/cccdscanner/` for the scanner.</span></div>
+        <div class="launch-item"><strong>Preview</strong><span>Import the repo into Vercel and use the preview URL to test camera and QR.</span></div>
+        <div class="launch-item"><strong>Production</strong><span>Keep Apps Script deployed, then share the Vercel URL with users.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

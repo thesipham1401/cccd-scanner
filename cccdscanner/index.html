@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#0f766e" />
+<title>CCCD Scanner | Quét QR CCCD</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #071418;
+    --bg-soft: #0c1f24;
+    --card: rgba(10, 27, 31, 0.82);
+    --card-strong: #0f2024;
+    --text: #e7f4f1;
+    --muted: #9bb7b1;
+    --line: rgba(255, 255, 255, 0.1);
+    --teal: #14b8a6;
+    --teal-d: #0f766e;
+    --gold: #f4c95d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(20, 184, 166, 0.25), transparent 28%),
+      radial-gradient(circle at top right, rgba(244, 201, 93, 0.16), transparent 22%),
+      linear-gradient(180deg, #041013 0%, #06151a 45%, #081a1f 100%);
+    padding: 16px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.8), transparent 92%);
+  }
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+  }
+  .hero, .panel {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  }
+  .hero {
+    padding: 22px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -40px -80px auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.28), transparent 68%);
+    filter: blur(8px);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.22);
+    color: #bff3ec;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .hero h1 {
+    margin: 14px 0 10px;
+    font-size: clamp(30px, 7vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+  }
+  .hero p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 58ch;
+    font-size: 15px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .hero-actions button {
+    width: auto;
+    flex: 1 1 220px;
+    margin-top: 0;
+  }
+  button {
+    width: 100%; padding: 16px; font-size: 18px; border: none; border-radius: 14px;
+    background: var(--teal); color: #fff; font-weight: 700; margin-top: 8px;
+    box-shadow: 0 10px 26px rgba(20, 184, 166, 0.22);
+  }
+  button:disabled { background: #54706b; box-shadow: none; }
+  button.secondary { background: #17343a; border: 1px solid rgba(255,255,255,0.08); }
+  button.ghost {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+  }
+  #reader { width: 100%; border-radius: 12px; overflow: hidden; }
+  .hero-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .kpi {
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .kpi strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .kpi span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .panel {
+    padding: 18px;
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .panel-head .hint {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .steps {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(20, 184, 166, 0.14);
+    color: #aaf0e8;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .step strong { display: block; margin-bottom: 2px; }
+  .step span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .badge {
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #d6f6f2;
+    background: rgba(20, 184, 166, 0.11);
+    border: 1px solid rgba(20, 184, 166, 0.2);
+  }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; color: #afc8c2; margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 12px; font-size: 17px; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+    background: rgba(255,255,255,0.04); color: var(--text);
+  }
+  .consent { display: flex; align-items: center; gap: 10px; margin: 14px 0; font-size: 16px; }
+  .consent input { width: 22px; height: 22px; }
+  .hidden { display: none; }
+  .banner { background: rgba(244, 201, 93, 0.14); color: #ffe6a5; padding: 10px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 12px; border: 1px solid rgba(244, 201, 93, 0.18); }
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: rgba(4, 14, 17, 0.92); color: #fff; padding: 12px 20px; border-radius: 24px;
+    font-size: 16px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 9;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  #toast.show { opacity: 1; }
+  .err { color: #ffb4b4; text-align: center; margin: 8px 0; min-height: 20px; }
+  .subtle { color: var(--muted); font-size: 13px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="hero">
+    <span class="eyebrow">Vercel launch ready · quét CCCD trên điện thoại</span>
+    <h1>CCCD Scanner</h1>
+    <p>Quét QR mặt trước CCCD, rà lại thông tin ngay trên màn hình, nhập Quê quán và lưu thẳng vào Google Sheet chung. Tối ưu cho iPhone Safari và Android Chrome, chạy được cả local lẫn Vercel preview.</p>
+    <div class="hero-actions">
+      <button id="heroStartBtn">Bắt đầu quét</button>
+      <button class="ghost" id="heroDocsBtn" type="button">Xem hướng dẫn launch</button>
+    </div>
+    <div class="hero-kpis">
+      <div class="kpi"><strong>QR</strong><span>Đọc 7 trường từ mặt trước CCCD</span></div>
+      <div class="kpi"><strong>HTTPS</strong><span>Hoạt động trên localhost hoặc Vercel</span></div>
+      <div class="kpi"><strong>Sheet</strong><span>Ghi dữ liệu vào Google Sheets</span></div>
+    </div>
+    <div class="badge-row">
+      <span class="badge">Local test</span>
+      <span class="badge">Vercel preview</span>
+      <span class="badge">Production</span>
+      <span class="badge">Manual Quê quán</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><strong>Mở trang bằng HTTPS</strong><span>Dùng localhost cho test hoặc URL Vercel khi đi vào production.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><strong>Quét QR CCCD</strong><span>Camera sẽ đọc chuỗi 7 trường và tự điền form xem lại.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><strong>Nhập Quê quán và lưu</strong><span>Tick đồng ý thu thập thông tin trước khi bấm Lưu.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Launcher</h2>
+        <div class="hint">Chọn quét trực tiếp, rồi điền nốt các trường còn thiếu.</div>
+      </div>
+      <div class="subtle">Apps Script endpoint có thể override bằng query string.</div>
+    </div>
+
+    <!-- ====== CẤU HÌNH BACKEND: chỉ đổi khi đổi Apps Script ====== -->
+    <script>
+      const DEFAULT_CONFIG = {
+        scriptUrl: 'https://script.google.com/macros/s/AKfycbzrCtO5MF3Y9N_PtYttaKQo88byK_IBtVF_IXyNiTYrupmt9CRMesPKLzY2JyTFy4pV/exec',
+        secret: 'jCHW5dr2zWuR8yGIcFeZBRkk',
+      };
+
+      function readRuntimeConfig() {
+        const params = new URLSearchParams(window.location.search);
+        const scriptUrl = params.get('script_url') || localStorage.getItem('cccd_script_url') || DEFAULT_CONFIG.scriptUrl;
+        const secret = params.get('secret') || localStorage.getItem('cccd_secret') || DEFAULT_CONFIG.secret;
+
+        if (params.has('script_url')) localStorage.setItem('cccd_script_url', scriptUrl);
+        if (params.has('secret')) localStorage.setItem('cccd_secret', secret);
+
+        return { scriptUrl, secret };
+      }
+
+      const RUNTIME_CONFIG = readRuntimeConfig();
+      // Web app URL từ Apps Script (kết thúc bằng /exec):
+      const SCRIPT_URL = RUNTIME_CONFIG.scriptUrl;
+      // Chuỗi SECRET phải khớp với Code.gs:
+      const SECRET = RUNTIME_CONFIG.secret;
+    </script>
+    <!-- ============================================ -->
+
+    <!-- Màn quét -->
+    <div id="scanView">
+      <div id="reader"></div>
+      <div class="err" id="scanErr"></div>
+      <button id="startBtn">Bắt đầu quét</button>
+    </div>
+
+    <!-- Màn xem lại -->
+    <div id="formView" class="hidden">
+      <div class="banner">Kiểm tra lại thông tin và <b>gõ Quê quán</b> (QR không có sẵn).</div>
+      <div class="field"><label>Số CCCD</label><input id="f_cccd" inputmode="numeric" /></div>
+      <div class="field"><label>Số CMND cũ</label><input id="f_oldId" /></div>
+      <div class="field"><label>Họ và tên</label><input id="f_name" /></div>
+      <div class="field"><label>Ngày sinh</label><input id="f_dob" /></div>
+      <div class="field"><label>Giới tính</label><input id="f_gender" /></div>
+      <div class="field"><label>Địa chỉ thường trú</label><input id="f_address" /></div>
+      <div class="field"><label>Ngày cấp</label><input id="f_issue" /></div>
+      <div class="field"><label>Quê quán</label><input id="f_hometown" placeholder="Gõ quê quán…" /></div>
+
+      <label class="consent">
+        <input type="checkbox" id="consent" />
+        Khách hàng đồng ý cho thu thập thông tin
+      </label>
+
+      <button id="saveBtn" disabled>Lưu</button>
+      <button class="secondary" id="againBtn">Quét thẻ khác</button>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let scanner = null;
+
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function qrDate(s) {
+    if (!s) return '';
+    if (!/^\d{8}$/.test(s)) return s; // để nguyên nếu lạ, người dùng tự sửa
+    return s.slice(0, 2) + '/' + s.slice(2, 4) + '/' + s.slice(4, 8);
+  }
+
+  function parseQr(raw) {
+    const p = raw.split('|');
+    if (p.length !== 7) throw new Error('Không phải mã QR mặt trước CCCD.');
+    const cccd = p[0].trim();
+    if (!/^\d{12}$/.test(cccd)) throw new Error('Số CCCD không hợp lệ (cần 12 số).');
+    return {
+      cccd, oldId: p[1].trim(), name: p[2].trim(), dob: qrDate(p[3].trim()),
+      gender: p[4].trim(), address: p[5].trim(), issue: qrDate(p[6].trim()),
+    };
+  }
+
+  function today() {
+    const n = new Date(); const pad = (x) => String(x).padStart(2, '0');
+    return pad(n.getDate()) + '/' + pad(n.getMonth() + 1) + '/' + n.getFullYear();
+  }
+
+  // JSONP: tránh hoàn toàn lỗi CORS của trình duyệt với Apps Script.
+  function jsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+      const s = document.createElement('script');
+      const timer = setTimeout(() => { cleanup(); reject(new Error('Hết thời gian chờ mạng')); }, 20000);
+      function cleanup() { clearTimeout(timer); delete window[cb]; s.remove(); }
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      s.onerror = () => { cleanup(); reject(new Error('Lỗi mạng')); };
+      const qs = new URLSearchParams(Object.assign({}, params, { callback: cb })).toString();
+      s.src = url + (url.includes('?') ? '&' : '?') + qs;
+      document.body.appendChild(s);
+    });
+  }
+
+  function showForm(d) {
+    $('f_cccd').value = d.cccd; $('f_oldId').value = d.oldId; $('f_name').value = d.name;
+    $('f_dob').value = d.dob; $('f_gender').value = d.gender; $('f_address').value = d.address;
+    $('f_issue').value = d.issue; $('f_hometown').value = '';
+    $('consent').checked = false; $('saveBtn').disabled = true;
+    $('scanView').classList.add('hidden'); $('formView').classList.remove('hidden');
+  }
+
+  function collect() {
+    const v = (id) => $(id).value.trim();
+    return {
+      c0: v('f_cccd'), c1: v('f_oldId'), c2: v('f_name'), c3: v('f_dob'),
+      c4: v('f_gender'), c5: v('f_address'), c6: v('f_issue'), c7: v('f_hometown'), c8: today(),
+    };
+  }
+
+  async function onScan(text) {
+    let d;
+    try { d = parseQr(text); }
+    catch (e) { $('scanErr').textContent = e.message; return; } // tiếp tục quét
+    try { await scanner.stop(); } catch (_) {}
+    showForm(d);
+  }
+
+  $('startBtn').onclick = async () => {
+    $('scanErr').textContent = '';
+    if (SCRIPT_URL.startsWith('REPLACE')) { $('scanErr').textContent = 'Chưa cấu hình SCRIPT_URL.'; return; }
+    scanner = new Html5Qrcode('reader');
+    try {
+      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 250 }, onScan, () => {});
+      $('startBtn').textContent = 'Đang quét… đưa QR vào khung';
+    } catch (e) {
+      $('scanErr').textContent = 'Không mở được camera. Cần dùng HTTPS và cho phép camera.';
+    }
+  };
+
+  $('heroStartBtn').onclick = async () => {
+    $('scanView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('startBtn').click();
+  };
+
+  $('heroDocsBtn').onclick = () => {
+    window.open('/README.md', '_blank', 'noopener');
+  };
+
+  ['change', 'click'].forEach((ev) =>
+    $('consent').addEventListener(ev, () => { $('saveBtn').disabled = !$('consent').checked; }));
+
+  async function doSave(force) {
+    $('saveBtn').disabled = true; $('saveBtn').textContent = 'Đang lưu…';
+    try {
+      const params = Object.assign({ secret: SECRET, force: force ? '1' : '0' }, collect());
+      const res = await jsonp(SCRIPT_URL, params);
+      if (res.result === 'appended') { toast('Đã lưu ✅'); resetToScan(); }
+      else if (res.result === 'duplicate') {
+        if (confirm('Số CCCD này đã có trong bảng. Vẫn lưu thêm?')) return doSave(true);
+      } else { toast('Lỗi: ' + (res.message || res.result)); }
+    } catch (e) { toast('Không gửi được: ' + e.message); }
+    finally { $('saveBtn').textContent = 'Lưu'; $('saveBtn').disabled = !$('consent').checked; }
+  }
+
+  $('saveBtn').onclick = () => doSave(false);
+
+  function resetToScan() {
+    $('formView').classList.add('hidden'); $('scanView').classList.remove('hidden');
+    $('startBtn').textContent = 'Bắt đầu quét';
+  }
+  $('againBtn').onclick = resetToScan;
+</script>
+</body>
+</html>

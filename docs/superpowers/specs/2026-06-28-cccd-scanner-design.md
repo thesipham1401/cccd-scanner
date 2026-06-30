@@ -73,7 +73,7 @@ Số CCCD | Số CMND cũ | Họ và tên | Ngày sinh | Giới tính | Địa c
 
 ## 7. Cấu trúc triển khai
 
-- Frontend tĩnh đặt trong thư mục `webapp/`.
+- Frontend tĩnh đặt trong thư mục `cccdscanner/`.
 - Vercel chỉ phục vụ giao diện và HTTPS.
 - Apps Script giữ vai trò backend cực mỏng để ghi Google Sheet.
 - Toàn bộ luồng phải dùng được trên trình duyệt mobile mà không cần cài app.

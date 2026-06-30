@@ -18,7 +18,8 @@
 
 ## Delivery Plan
 
-- [ ] Xác nhận lại luồng webapp hiện tại trong `webapp/index.html`.
+- [ ] Xác nhận lại luồng webapp hiện tại trong `cccdscanner/index.html`.
+- [ ] Xác nhận lại luồng webapp hiện tại trong `cccdscanner/index.html`.
 - [ ] Chuyển toàn bộ tài liệu tham chiếu từ app mobile sang webapp-only.
 - [ ] Cập nhật Apps Script endpoint để nhận đúng payload từ webapp.
 - [ ] Deploy frontend lên Vercel và kiểm tra quét QR trên điện thoại.

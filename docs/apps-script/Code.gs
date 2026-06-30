@@ -5,7 +5,7 @@
  * Cách deploy: mở Google Sheet → Tiện ích mở rộng → Apps Script → dán file này →
  *   Triển khai → Ứng dụng web → Execute as: Me, Who has access: Anyone → copy URL.
  *
- * QUAN TRỌNG: đổi SECRET thành chuỗi ngẫu nhiên dài và dán y hệt vào webapp/index.html.
+ * QUAN TRỌNG: đổi SECRET thành chuỗi ngẫu nhiên dài và dán y hệt vào cccdscanner/index.html.
  */
 
 const SECRET = 'DOI_CHUOI_NAY_THANH_MAT_KHAU_NGAU_NHIEN_DAI';
