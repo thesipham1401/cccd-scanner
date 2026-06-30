@@ -9,10 +9,10 @@ import 'screens/review_screen.dart';
 
 // TODO: dán "Web app URL" lấy từ Apps Script (Triển khai → Ứng dụng web).
 // Xem docs/apps-script/Code.gs và docs/superpowers/notes/apps-script-setup.md.
-const String kScriptUrl = 'REPLACE_WITH_APPS_SCRIPT_URL';
+const String kScriptUrl = 'https://script.google.com/macros/s/AKfycbzrCtO5MF3Y9N_PtYttaKQo88byK_IBtVF_IXyNiTYrupmt9CRMesPKLzY2JyTFy4pV/exec';
 
 // TODO: dán ĐÚNG chuỗi SECRET đã đặt trong Apps Script (Code.gs).
-const String kSharedSecret = 'DOI_CHUOI_NAY_THANH_MAT_KHAU_NGAU_NHIEN_DAI';
+const String kSharedSecret = 'gUhHDyL4wSiwrCFRCTrhsgRn';
 
 void main() => runApp(const CccdScannerApp());
 

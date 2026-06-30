@@ -1,14 +1,11 @@
 /**
  * CCCD Scanner — Apps Script Web App.
- * Phục vụ CẢ HAI:
- *   - App Android: gửi POST (JSON).
- *   - Web app (Safari iPhone): gửi GET dạng JSONP (tránh lỗi CORS của trình duyệt).
+ * Phục vụ frontend webapp deploy trên Vercel qua GET JSONP để tránh lỗi CORS của trình duyệt.
  *
  * Cách deploy: mở Google Sheet → Tiện ích mở rộng → Apps Script → dán file này →
  *   Triển khai → Ứng dụng web → Execute as: Me, Who has access: Anyone → copy URL.
  *
- * QUAN TRỌNG: đổi SECRET thành chuỗi ngẫu nhiên dài, dán y hệt vào app Android
- * (kSharedSecret) và vào web (hằng SECRET trong index.html).
+ * QUAN TRỌNG: đổi SECRET thành chuỗi ngẫu nhiên dài và dán y hệt vào webapp/index.html.
  */
 
 const SECRET = 'DOI_CHUOI_NAY_THANH_MAT_KHAU_NGAU_NHIEN_DAI';
@@ -18,7 +15,7 @@ const HEADER = [
   'Địa chỉ thường trú', 'Ngày cấp', 'Quê quán', 'Ngày quét',
 ];
 
-// App Android — POST JSON { secret, force, row:[...9] }
+// JSON POST legacy / internal use — { secret, force, row:[...9] }
 function doPost(e) {
   const body = JSON.parse(e.postData.contents);
   return _json(_handle(body));

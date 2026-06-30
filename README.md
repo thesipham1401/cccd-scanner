@@ -1,17 +1,24 @@
-# cccd_scanner
+# CCCD Scanner Webapp
 
-A new Flutter project.
+Webapp quét QR CCCD trên điện thoại, rà lại dữ liệu rồi lưu vào Google Sheet chung.
+Frontend được deploy trên Vercel, backend ghi Sheet dùng Google Apps Script.
 
-## Getting Started
+## Cấu trúc
 
-This project is a starting point for a Flutter application.
+- `webapp/` - frontend tĩnh cho mobile.
+- `docs/apps-script/Code.gs` - endpoint ghi dữ liệu vào Google Sheet.
+- `docs/superpowers/specs/2026-06-28-cccd-scanner-design.md` - spec hiện tại đã chuyển sang webapp-only.
+- `docs/superpowers/notes/webapp-setup.md` - hướng dẫn deploy Vercel.
 
-A few resources to get you started if this is your first Flutter project:
+## Luồng sử dụng
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. Mở link Vercel trên điện thoại.
+2. Quét QR mặt trước CCCD.
+3. Nhập Quê quán và kiểm tra lại thông tin.
+4. Tick đồng ý và bấm Lưu.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Triển khai
+
+1. Cập nhật `webapp/index.html` với `SCRIPT_URL` và `SECRET` đúng.
+2. Deploy frontend lên Vercel.
+3. Deploy lại Apps Script nếu thay đổi `docs/apps-script/Code.gs`.

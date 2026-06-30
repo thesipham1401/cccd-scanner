@@ -1,50 +1,36 @@
-# Web app (quét CCCD trên iPhone/Safari) — triển khai miễn phí
+# Web app (quét CCCD trên điện thoại) — deploy qua Vercel
 
-Web app dùng **cùng Google Sheet** với app Android, qua cùng Apps Script.
-Không cần Mac, không cần tài khoản Apple, không mất phí.
+Web app dùng **cùng Google Sheet** qua Google Apps Script.
+Frontend được deploy trên **Vercel** để có HTTPS và mở camera ổn định trên mobile.
 
-## 1. Cập nhật Apps Script (làm 1 lần)
-`Code.gs` đã được nâng cấp để phục vụ cả web (thêm `doGet` JSONP). Phải deploy lại:
+## 1. Cập nhật Apps Script
+`docs/apps-script/Code.gs` đã có endpoint `doGet` JSONP cho webapp. Khi đổi `SECRET` hoặc logic sheet, phải deploy lại:
 1. Mở Google Sheet → Tiện ích mở rộng → Apps Script.
-2. Dán lại toàn bộ `docs/apps-script/Code.gs` mới (giữ nguyên dòng `SECRET`).
-3. **Triển khai (Deploy) → Quản lý triển khai (Manage deployments)** → bút chì ✎ →
-   **Phiên bản: New version** → **Triển khai**. (Giữ Execute as: Me, Access: Anyone.)
-   URL `/exec` không đổi.
+2. Dán lại nội dung `docs/apps-script/Code.gs`.
+3. **Deploy** → **Manage deployments** → chỉnh sửa deployment hiện tại.
+4. Chọn **New version** → **Deploy**.
 
-## 2. Cấu hình trang web
-Mở `webapp/index.html`, sửa 2 dòng trong phần CẤU HÌNH:
+## 2. Cấu hình webapp
+Mở `webapp/index.html`, sửa 2 dòng trong phần CẤU HÌNH để trỏ đúng Apps Script:
 ```js
-const SCRIPT_URL = 'DÁN_WEB_APP_URL_/exec';
-const SECRET = 'CHUỖI_SECRET_GIỐNG_HỆT_TRONG_Code.gs';
+const SCRIPT_URL = 'https://script.google.com/macros/s/REPLACE_ME/exec';
+const SECRET = 'REPLACE_ME';
 ```
 
-## 3. Đưa trang web lên mạng (cần HTTPS để mở camera)
-Chọn 1 trong 2 cách, đều miễn phí:
+## 3. Deploy lên Vercel
+1. Đưa thư mục `webapp` lên một repo Git.
+2. Tạo project mới trên Vercel và import repo đó.
+3. Giữ cấu hình mặc định nếu đây là static site.
+4. Deploy, rồi lấy URL HTTPS do Vercel cấp.
 
-**Cách A — Netlify Drop (nhanh nhất, không cần tài khoản):**
-1. Vào https://app.netlify.com/drop
-2. Kéo-thả **thư mục `webapp`** vào trang đó.
-3. Nhận ngay 1 link HTTPS dạng `https://ten-ngau-nhien.netlify.app` → gửi cho nhân viên.
+## 4. Dùng trên điện thoại
+1. Mở URL Vercel bằng Safari hoặc Chrome mobile.
+2. Bấm **Bắt đầu quét** và cho phép camera.
+3. Quét QR CCCD → webapp tự điền 7 trường.
+4. Nhập **Quê quán**, tick đồng ý, rồi bấm **Lưu**.
+5. Kiểm tra dòng mới trong Google Sheet.
 
-**Cách B — GitHub Pages:**
-1. Tạo repo, đẩy nội dung thư mục `webapp` lên.
-2. Settings → Pages → Branch = main, thư mục gốc → Save.
-3. Nhận link `https://<user>.github.io/<repo>/`.
-
-## 4. Dùng trên iPhone
-1. Mở link bằng **Safari**.
-2. Bấm **Bắt đầu quét** → Safari hỏi quyền camera → **Cho phép**.
-3. Đưa mã QR mặt trước CCCD vào khung → tự điền 7 trường.
-4. **Gõ Quê quán** + tick đồng ý → **Lưu** → kiểm tra dòng mới trong Sheet.
-5. (Tùy chọn) Safari → nút Chia sẻ → **Thêm vào màn hình chính** để dùng như 1 app.
-
-## Giới hạn của bản web (so với app Android)
-- Không có OCR tự đọc Quê quán → **gõ tay** (1 ô).
-- Không có "chọn ảnh có sẵn → tự đọc".
-- Camera chỉ chạy khi mở qua **HTTPS** (các link ở bước 3 đều là HTTPS).
-- Nếu Safari không xin quyền camera: vào Cài đặt → Safari → Camera → Cho phép.
-
-## Lưu ý bảo mật
-- `SECRET` nằm trong mã trang web (ai mở "View Source" đều thấy). Với công cụ nội bộ
-  thì chấp nhận được — nó chỉ chặn người lạ tình cờ; đừng công khai link rộng rãi.
-- Muốn an toàn hơn: đổi `SECRET` định kỳ (sửa Code.gs → deploy New version → sửa lại web).
+## 5. Lưu ý
+- Camera chỉ chạy khi site có HTTPS, vì vậy Vercel là đường deploy chính.
+- Không lưu ảnh CCCD trong trình duyệt hay trên server.
+- Nếu đổi `SECRET`, phải cập nhật cả Apps Script lẫn `webapp/index.html`.
